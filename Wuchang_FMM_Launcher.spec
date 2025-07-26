@@ -16,7 +16,7 @@ version_info = {
 }
 
 a = Analysis(
-    ['Wuchang_FMM_Launcher.py'],
+    ['Wuchang_FMM_Launcher.py', 'common_operations.py'],
     pathex=[],
     binaries=[],
     datas=[],

@@ -14,3 +14,9 @@
 /TmpDownload
 /unrar.dll
 /Updater.exe
+
+# spec_temp
+Wuchang FMM Launcher.spec
+
+# pycache
+__pycache__

@@ -22,6 +22,7 @@ from colorama import Fore, Style, init
 import configparser
 from datetime import datetime
 import hashlib
+from common_operations import CommonOperations
 
 # 初始化colorama
 init()
@@ -114,6 +115,7 @@ class PAKManagerConfig:
                     "stop_monitoring": "停止监控",
                     "view_links": "查看已创建的 Mod 链接",
                     "settings": "设置",
+                    "common_operations": "常用操作",
                     "language": "切换语言",
                     "exit": "退出程序",
                     "invalid_choice": "无效选择，请重试"
@@ -219,7 +221,9 @@ class PAKManagerConfig:
                     "time": "时间:",
                     "target": "目标:",
                     "unknown": "未知",
-                    "setup_path_first": "请先设置 Fluffy Mod Manager 的路径"
+                    "setup_path_first": "请先设置 Fluffy Mod Manager 的路径",
+                    "file_access_retry": "文件访问重试中...",
+                    "permission_warning": "权限不足，但操作可能已成功"
                 }
             },
             "en": {
@@ -234,6 +238,7 @@ class PAKManagerConfig:
                     "stop_monitoring": "Stop Monitoring",
                     "view_links": "View Created Mod Links",
                     "settings": "Settings",
+                    "common_operations": "Common Operations",
                     "language": "Switch Language",
                     "exit": "Exit",
                     "invalid_choice": "Invalid choice, please try again"
@@ -339,7 +344,9 @@ class PAKManagerConfig:
                     "time": "Time:",
                     "target": "Target:",
                     "unknown": "Unknown",
-                    "setup_path_first": "Please setup Fluffy Mod Manager path first"
+                    "setup_path_first": "Please setup Fluffy Mod Manager path first",
+                    "file_access_retry": "Retrying file access...",
+                    "permission_warning": "Insufficient permissions, but operation may have succeeded"
                 }
             }
         }
@@ -407,11 +414,26 @@ class PAKFileHandler(FileSystemEventHandler):
     def on_created(self, event):
         """文件创建事件"""
         if not event.is_directory and event.src_path.lower().endswith('.pak'):
-            # 等待文件写入完成
-            time.sleep(1)
-            if os.path.exists(event.src_path):
-                print(f"\n{Fore.GREEN}{EMOJI['INFO']} {self.config.get_text('monitor.new_file_detected')}: {os.path.basename(event.src_path)}{Style.RESET_ALL}")
-                self.pak_manager.create_pak_link(event.src_path)
+            # 等待文件写入完成，增加重试机制
+            max_retries = 5
+            for i in range(max_retries):
+                time.sleep(0.5)  # 减少单次等待时间但增加重试次数
+                if os.path.exists(event.src_path):
+                    try:
+                        # 尝试打开文件确保写入完成
+                        with open(event.src_path, 'rb') as f:
+                            f.read(1)  # 读取一个字节测试文件是否可访问
+                        break
+                    except (PermissionError, OSError):
+                        if i == max_retries - 1:
+                            return  # 最后一次重试失败则放弃
+                        continue
+                else:
+                    if i == max_retries - 1:
+                        return  # 文件不存在则放弃
+            
+            print(f"\n{Fore.GREEN}{EMOJI['INFO']} {self.config.get_text('monitor.new_file_detected')}: {os.path.basename(event.src_path)}{Style.RESET_ALL}")
+            self.pak_manager.create_pak_link(event.src_path)
     
     def on_deleted(self, event):
         """文件删除事件"""
@@ -429,6 +451,7 @@ class PAKManager:
         # 设置链接注册表文件到配置目录
         self.link_registry_file = os.path.join(self.config.config_dir, "pak_links_registry.json")
         self.link_registry = self.load_link_registry()
+        self.common_ops = CommonOperations(self.config)
         
         # 确保目标目录存在
         self.ensure_target_directory()
@@ -470,11 +493,26 @@ class PAKManager:
         
         # 如果目标文件已存在，先删除
         if os.path.exists(target_path):
-            try:
-                os.remove(target_path)
-            except Exception as e:
-                print(f"{Fore.RED}{EMOJI['ERROR']} 无法删除现有文件: {e}{Style.RESET_ALL}")
-                return False
+            max_retries = 3
+            deleted = False
+            for i in range(max_retries):
+                try:
+                    os.remove(target_path)
+                    deleted = True
+                    break
+                except PermissionError as e:
+                    if i == max_retries - 1:
+                        print(f"{Fore.YELLOW}{EMOJI['WARNING']} 无法删除现有文件（权限不足），尝试继续创建链接: {e}{Style.RESET_ALL}")
+                    else:
+                        time.sleep(0.5)
+                        continue
+                except Exception as e:
+                    if i == max_retries - 1:
+                        print(f"{Fore.RED}{EMOJI['ERROR']} 无法删除现有文件: {e}{Style.RESET_ALL}")
+                        return False
+                    else:
+                        time.sleep(0.5)
+                        continue
         
         # 尝试创建链接
         link_method = self.config.config['link_method']
@@ -560,12 +598,32 @@ class PAKManager:
             target_path = self.link_registry[source_path]['target']
             try:
                 if os.path.exists(target_path):
-                    os.remove(target_path)
-                    print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.config.get_text('link.cleanup')}: {os.path.basename(target_path)}{Style.RESET_ALL}")
+                    # 增加重试机制处理文件被占用的情况
+                    max_retries = 3
+                    for i in range(max_retries):
+                        try:
+                            os.remove(target_path)
+                            print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.config.get_text('link.cleanup')}: {os.path.basename(target_path)}{Style.RESET_ALL}")
+                            break
+                        except PermissionError as e:
+                            if i == max_retries - 1:
+                                # 最后一次重试失败，但不阻止注册表清理
+                                print(f"{Fore.YELLOW}{EMOJI['WARNING']} 无法删除目标文件（权限不足），但已清理注册表: {os.path.basename(target_path)}{Style.RESET_ALL}")
+                            else:
+                                time.sleep(0.5)  # 等待后重试
+                                continue
+                        except Exception as e:
+                            if i == max_retries - 1:
+                                print(f"{Fore.RED}{EMOJI['ERROR']} {self.config.get_text('general.cleanup_failed')} {e}{Style.RESET_ALL}")
+                            else:
+                                time.sleep(0.5)
+                                continue
+                
+                # 无论文件删除是否成功，都清理注册表记录
                 del self.link_registry[source_path]
                 self.save_link_registry()
             except Exception as e:
-                    print(f"{Fore.RED}{EMOJI['ERROR']} {self.config.get_text('general.cleanup_failed')} {e}{Style.RESET_ALL}")
+                print(f"{Fore.RED}{EMOJI['ERROR']} {self.config.get_text('general.cleanup_failed')} {e}{Style.RESET_ALL}")
     
     def start_monitoring(self):
         """开始监控PAK文件"""
@@ -793,6 +851,10 @@ class PAKManager:
         print(f"{Fore.BLUE}{self.config.get_text('config.auto_start')}{Style.RESET_ALL} {yes_text if config.get('auto_start_modmanager', False) else no_text}")
         print(f"{Fore.BLUE}{self.config.get_text('config.monitor_status')}{Style.RESET_ALL} {running_text if self.monitoring else stopped_text}")
     
+    def show_common_operations(self):
+        """显示常用操作菜单"""
+        self.common_ops.show_menu(self.config.current_language)
+    
     def switch_language(self):
         """切换语言"""
         print(f"\n{Fore.CYAN}{EMOJI['LANG']} {self.config.get_text('language.title')}{Style.RESET_ALL}")
@@ -836,7 +898,8 @@ class PAKManager:
             print(f"{Fore.GREEN}3.{Style.RESET_ALL} {EMOJI['WARNING']} {self.config.get_text('menu.stop_monitoring')}")
             print(f"{Fore.GREEN}4.{Style.RESET_ALL} {EMOJI['LINK']} {self.config.get_text('menu.view_links')}")
             print(f"{Fore.GREEN}5.{Style.RESET_ALL} {EMOJI['SETTINGS']} {self.config.get_text('menu.settings')}")
-            print(f"{Fore.GREEN}6.{Style.RESET_ALL} {EMOJI['LANG']} {self.config.get_text('menu.language')}")
+            print(f"{Fore.GREEN}6.{Style.RESET_ALL} {EMOJI['FOLDER']} {self.config.get_text('menu.common_operations')}")
+            print(f"{Fore.GREEN}7.{Style.RESET_ALL} {EMOJI['LANG']} {self.config.get_text('menu.language')}")
             print(f"{Fore.GREEN}0.{Style.RESET_ALL} {EMOJI['ERROR']} {self.config.get_text('menu.exit')}")
             
             choice = input(f"\n{Fore.GREEN}{EMOJI['ARROW']} {self.config.get_text('general.choose_prompt')} ").strip()
@@ -863,6 +926,8 @@ class PAKManager:
             elif choice == '5':
                 self.show_settings()
             elif choice == '6':
+                self.show_common_operations()
+            elif choice == '7':
                 self.switch_language()
                 input(f"\n{Fore.YELLOW}{self.config.get_text('general.continue_prompt')}{Style.RESET_ALL}")
             elif choice == '0':
