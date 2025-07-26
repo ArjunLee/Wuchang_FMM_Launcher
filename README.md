@@ -22,6 +22,7 @@
 - **📊 Link Management**: View and manage created mod links
 - **🔄 Real-time Monitoring**: Live file system monitoring
 - **💾 Configuration Persistence**: Settings saved to `%appdata%\WuchangFMMSupported`
+- **📁 Common Operations**: Quick access to game directory, mod directory, config directory and save directory
 
 ## 📋 Requirements
 
@@ -71,6 +72,16 @@ python Wuchang_FMM_Launcher.py
 
 1. **Start Monitoring** (Menu Option 2)
 2. **Press Ctrl+C** to stop monitoring
+
+### Common Operations
+
+Access via **Menu Option 6**:
+
+- **🎮 Open Game Directory**: Auto-detect and open game installation directory
+- **📦 Open ~mods Directory**: Open mod installation directory (`Project_Plague/Content/Paks/~mods`)
+- **⚙️ Open Game Config Directory**: Open game configuration directory (`%localappdata%/Project_Plague/Saved/Config`)
+- **💾 Open Game Save Directory**: Open game save directory (`%localappdata%/Project_Plague/Saved`)
+- **💾 Backup Game Saves**: Compress the save directory into a zip file for backup (format: `Wuchang_Game_Saved-YYYYMMDD_HHMM.zip`)
 
 ### Link Methods
 

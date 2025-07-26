@@ -22,6 +22,7 @@
 - **📊 链接管理**: 查看和管理已创建的模组链接
 - **🔄 实时监控**: 实时文件系统监控
 - **💾 配置持久化**: 设置保存到 `%appdata%\WuchangFMMSupported`
+- **📁 常用操作**: 快速访问游戏目录、模组目录、配置目录和存档目录
 
 ## 📋 系统要求
 
@@ -71,6 +72,16 @@ python Wuchang_FMM_Launcher.py
 
 1. **开始监控**（菜单选项 2）
 2. **按 Ctrl+C** 停止监控
+
+### 常用操作
+
+通过 **菜单选项 6** 访问常用操作：
+
+- **🎮 打开游戏目录**: 自动检测并打开游戏安装目录
+- **📦 打开~mods目录**: 打开模组安装目录（`Project_Plague/Content/Paks/~mods`）
+- **⚙️ 打开游戏设置目录**: 打开游戏配置文件目录（`%localappdata%/Project_Plague/Saved/Config`）
+- **💾 打开游戏存档目录**: 打开游戏存档目录（`%localappdata%/Project_Plague/Saved`）
+- **💾 备份游戏存档**: 将存档目录打包成zip文件进行备份（格式：`Wuchang_Game_Saved-YYYYMMDD_HHMM.zip`）
 
 ### 链接方法说明
 
