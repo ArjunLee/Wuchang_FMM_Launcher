@@ -13,7 +13,7 @@
 ### 🔧 Core Functions
 - **🎯 Automatic PAK Monitoring**: Real-time detection of new PAK files
 - **🔗 Smart Linking**: Multiple linking methods (Hard Link, Symbolic Link, File Copy)
-- **⚙️ Fluffy Mod Manager Integration**: Seamless integration with FMM
+- **⚙️ Fluffy Mod Manager Integration**: Run integrated with Fluffy Mod Manager
 - **🌐 Multi-language Support**: Chinese and English interface
 - **📁 Flexible Configuration**: Customizable target directories and settings
 
@@ -22,7 +22,7 @@
 - **📊 Link Management**: View and manage created mod links
 - **🔄 Real-time Monitoring**: Live file system monitoring
 - **💾 Configuration Persistence**: Settings saved to `%appdata%\WuchangFMMSupported`
-- **📁 Common Operations**: Quick access to game directory, mod directory, config directory and save directory
+- **📁 Common Operations**: Quick access to game directory, mod directory, config directory, save directory, and backup game saves
 
 ## 📋 Requirements
 
