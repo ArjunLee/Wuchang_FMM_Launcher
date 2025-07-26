@@ -1,8 +1,8 @@
 VSVersionInfo(
   # 固定文件信息
   ffi=FixedFileInfo(
-    filevers=(1, 0, 0, 0),  # 文件版本号
-    prodvers=(1, 0, 0, 0),  # 产品版本号
+    filevers=(1, 2, 4, 0),  # 文件版本号
+    prodvers=(1, 2, 4, 0),  # 产品版本号
     mask=0x3f,  # 掩码
     flags=0x0,  # 标志位
     OS=0x40004,  # 目标操作系统
@@ -18,12 +18,12 @@ VSVersionInfo(
           u'080404b0',  # 语言和代码页(简体中文)
           [StringStruct(u'CompanyName', u'Arjun520'),  # 公司名称
            StringStruct(u'FileDescription', u'明末：渊虚之羽-FMM_MOD启动器'),  # 文件描述
-           StringStruct(u'FileVersion', u'1.0.0.0'),  # 文件版本字符串
+           StringStruct(u'FileVersion', u'1.2.4.0'),  # 文件版本字符串
            StringStruct(u'InternalName', u'明末：渊虚之羽-FMM_MOD启动器'),  # 内部名称
            StringStruct(u'LegalCopyright', u'Copyright © 2025 Arjun520. All rights reserved.'),  # 版权信息
            StringStruct(u'OriginalFilename', u'Wuchang FMM Launcher.exe'),  # 原始文件名
            StringStruct(u'ProductName', u'明末：渊虚之羽-FMM_MOD启动器'),  # 产品名称
-           StringStruct(u'ProductVersion', u'1.0.0.0')])  # 产品版本字符串
+           StringStruct(u'ProductVersion', u'1.2.4.0')])  # 产品版本字符串
       ]),
     VarFileInfo([VarStruct(u'Translation', [0x804, 1200])])  # 语言代码(中文简体)
   ]

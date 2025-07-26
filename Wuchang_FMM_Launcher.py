@@ -5,7 +5,7 @@ Fluffy Mod Manager 支持程序
 自动监控并链接模组文件（PAK）到正确的游戏目录
 
 Author: Arjun520
-Version: 1.0.0
+Version: 1.2.4
 """
 
 import os
@@ -388,7 +388,7 @@ class PAKLogo:
   ╚███╔███╔╝╚██████╔╝╚██████╗██║  ██║██║  ██║██║ ╚████║╚██████╔╝ 
    ╚══╝╚══╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝                   
                                                                                                
-                {Fore.YELLOW}🎮  FMM Supported v1.0.0 🎮{Fore.CYAN}
+                     {Fore.YELLOW}🎮  FMM Supported 🎮{Fore.CYAN}
                                                                         
 ╚════════════════════════════════════════════════════════════════╝
 {Style.RESET_ALL}"""
@@ -400,7 +400,7 @@ class PAKLogo:
         os.system('cls' if os.name == 'nt' else 'clear')
         print(PAKLogo.get_logo())
         print(f"{Fore.GREEN}{EMOJI['STAR']} {config.get_text('title')}{Style.RESET_ALL}")
-        print(f"{Fore.BLUE}{EMOJI['INFO']} {config.get_text('version')}: 1.0.0{Style.RESET_ALL}")
+        print(f"{Fore.BLUE}{EMOJI['INFO']} {config.get_text('version')}: 1.2.4{Style.RESET_ALL}")
         print(f"{Fore.BLUE}{EMOJI['INFO']} {config.get_text('author')}{Style.RESET_ALL}")
         print(f"{Fore.YELLOW}{'─' * 86}{Style.RESET_ALL}")
 
@@ -703,6 +703,9 @@ class PAKManager:
             self.config.save_config()
             print(f"{Fore.GREEN}{EMOJI['SUCCESS']} {self.config.get_text('setup.path_saved')}: {path}{Style.RESET_ALL}")
             
+            # 静默处理GameInfo.bin文件
+            self._handle_gameinfo_replacement(path)
+            
             # 询问是否自动启动
             auto_start = input(f"{Fore.YELLOW}{self.config.get_text('setup.auto_start')} ").strip().lower()
             self.config.config['auto_start_modmanager'] = auto_start in ['y', 'yes', '是', 'true']
@@ -712,6 +715,40 @@ class PAKManager:
         else:
             print(f"{Fore.RED}{EMOJI['ERROR']} {self.config.get_text('setup.path_invalid')}{Style.RESET_ALL}")
             return False
+    
+    def _handle_gameinfo_replacement(self, fmm_path):
+        """处理GameInfo.bin文件的备份和替换 - Handle GameInfo.bin backup and replacement"""
+        try:
+            # 获取FMM目录下的Data文件夹路径
+            fmm_dir = os.path.dirname(fmm_path)
+            data_dir = os.path.join(fmm_dir, "Data")
+            
+            if not os.path.exists(data_dir):
+                return
+            
+            # 原始GameInfo.bin路径
+            original_gameinfo = os.path.join(data_dir, "GameInfo.bin")
+            backup_gameinfo = os.path.join(data_dir, "GameInfo.bin.backup")
+            
+            # 如果原始文件存在且备份文件不存在，则创建备份
+            if os.path.exists(original_gameinfo) and not os.path.exists(backup_gameinfo):
+                shutil.copy2(original_gameinfo, backup_gameinfo)
+            
+            # 源GameInfo.bin文件路径（程序目录下的src文件夹）
+            if getattr(sys, 'frozen', False):
+                # 打包后的可执行文件环境
+                source_gameinfo = os.path.join(sys._MEIPASS, "src", "GameInfo.bin")
+            else:
+                # 开发环境
+                source_gameinfo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src", "GameInfo.bin")
+            
+            # 如果源文件存在，则复制到目标位置
+            if os.path.exists(source_gameinfo):
+                shutil.copy2(source_gameinfo, original_gameinfo)
+                
+        except Exception:
+            # 静默处理错误，不显示任何提示
+            pass
     
     def view_links(self):
         """查看已创建的链接"""

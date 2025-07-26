@@ -19,7 +19,7 @@ a = Analysis(
     ['Wuchang_FMM_Launcher.py', 'common_operations.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('src/GameInfo.bin', 'src')],
     hiddenimports=[
         'watchdog',
         'watchdog.observers',
